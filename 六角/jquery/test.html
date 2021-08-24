@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style>
+    #strId {
+      color: blue;
+      font-size: 48px;
+    }
+  </style>
+  <body>
+    <h1 class="titleClass">
+      <a href="#">title</a>
+    </h1>
+    <div class="str">hello</div>
+    <script>
+      var el = document.querySelector(".titleClass a");
+      // 設定屬性
+      el.setAttribute("href", "http://www.yahoo.com.tw");
+      // 撈屬性
+      var el3 = document.querySelector(".titleClass a").getAttribute("href");
+      console.log(el3);
+      // 撈文字
+      var el4 = document.querySelector(".titleClass a").textContent;
+      console.log(el4);
+      // 撈html
+      var el5 = document.querySelector(".titleClass").innerHTML;
+      console.log(el5);
+
+      var el2 = document.querySelector(".str");
+      el2.setAttribute("id", "strId");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <my-button text="測試"></my-button>
+    <my-button text="點擊"></my-button>
+
+    <script>
+      // 建立按鈕組件
+      class Mybutton extends HTMLElement {
+        static style = `
+                .btn{
+                    display:inline-block;
+                    color:#eeeeee;
+                    background-color:#aaaaaa;
+                    padding:10px;
+                }
+                `;
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+          // 套用組件內部的css
+          this.styling();
+          // 畫出<my-button>的html結構
+          this.render();
+        }
+        styling() {
+          this.stylesheet = document.createElement("style");
+          // 寫在組件內的className 和外面不會衝突
+          this.stylesheet.textContent = this.constructor.style;
+          this.shadowRoot.appendChild(this.stylesheet);
+        }
+        render() {
+          this.btn = document.createElement("div");
+          this.btn.className = "btn";
+          this.btn.textContent = this.getAttribute("text");
+          this.shadowRoot.appendChild(this.btn);
+        }
+      }
+      // 組件外部
+      window.customElements.define("my-button", Mybutton);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Use mock api" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+  <link href="https://cdn.jsdelivr.net/gh/GedMarc/bootstrap4-dialog/dist/css/bootstrap-dialog.css" rel="stylesheet"
+    type="text/css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"
+    integrity="sha512-NhSC1YmyruXifcj/KFRWoC561YpHpc5Jtzgvbuzx5VozKpWvQ+4nXhPdFgmx8xqexRcpAglTj9sIBWINXa8x5w=="
+    crossorigin="anonymous" />
+  <link rel="stylesheet" href="../src/app.css" />
+  <title>Mack-up Exam</title>
+</head>
+
+<body class="p-5">
+  <div class="container-fluid">
+    <button type="button" class="btn border-secondary btn-primary" data-toggle="modal" data-target="#addModal"
+      id="addBtn">
+      新增
+    </button>
+    <div class="form-group d-flex justify-content-between">
+      <p id="showPerRow"></p>
+      <div id="toolBar">
+      </div>
+    </div>
+    <!-- 新增和編輯modal -->
+    <div class="modal fade" id="addModal" data-backdrop="static">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+          <div class="modal-header bg-primary">
+            <h5 class="modal-title text-white" id="addModalLabel">個人資料新增</h5>
+            <button type="button" class="close closeModalX" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="addForm" name="addForm" onsubmit="return validateForm()">
+              <label for="addDate">Date</label>：<b id="addDate">2021-03-03</b>
+            </form></br>
+            <label for="name">English Name(*)</label>：<input type="text" id="name" class="inputform w-100" />
+            <div class="errorName text-danger"></div>
+            <br />
+            <label for="email">Email(*)</label>：<br /><input type="text" id="email" class="inputform w-100" />
+            <div class="errorEmail text-danger"></div>
+            <br />
+            <label for="mobile">Phone(*)</label>：<br /><input type="text" id="phone" class="inputform w-100" />
+            <div class="errorPhone text-danger"></div>
+            <br />
+            <input id="rowID" type="hidden" value="" />
+            </form>
+          </div>
+          <div class="modal-footer">
+            <!-- data-dimiss="modal" 關閉 modal -->
+            <button type="button" class="btn border-secondary" data-dismiss="modal" id="closeModal">
+              Close
+            </button>
+            <button id="addSubmit" type="button" class="btn btn-primary border-secondary">
+              Save
+            </button>
+            <button id="saveButton" type="button" class="btn btn-primary border-secondary">
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <table id="accountTable" class="display " cellspacing="0" width="100%">
+    <tbody>
+    </tbody>
+  </table>
+  <div class="mt-3 d-flex justify-content-center"><button id="showMore" class="btn">顯示更多</button></div>
+</body>
+
+</html>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/GedMarc/bootstrap4-dialog/dist/js/bootstrap-dialog.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+<script src="https://unpkg.com/dayjs@1.8.21/dayjs.min.js"></script>
+<script src="../dist/index.umd.js"></script>
+<script type="module">
+
+  const currentDate = dayjs().add( 1, "day" ).format( "YYYY/MM/DD" );
+  // 宣告驗證規則
+  const emailRule =
+    /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]+$/;
+  const phoneRule = /^09\d{2}-\d{6}$/;
+  const _url = '/user/info';
+  let demo = new UserInfo( $( "#accountTable>tbody" ) );
+
+  $( function () {
+    axios.get( _url ).then( function ( response ) {
+      if ( response.status && response.status === 200 ) {
+        const optionsContent = {
+          // Table 來源資料
+          data: response.data,
+          // 預設資料列顯示數
+          perRow: 5,
+          // 是否顯示搜尋功能
+          search: true,
+          showMoreClick: 1,
+          // 編輯按鈕的 Callback
+          onEdit: function ( rowData ) {
+            $( "#rowID" ).val( rowData.id );
+            $( "#name" ).val( rowData.name );
+            $( "#email" ).val( rowData.email );
+            $( "#phone" ).val( rowData.phone );
+            $( "#addDate" ).text( rowData.addDate );
+
+            $( "#addModal" ).modal( "show" );
+
+            $( "#addBtn" ).on( "click", function ( e ) {
+              e.preventDefault();
+              $( "#addModal" ).modal( "show" );
+            } );
+
+            $( "#closeModal,.closeModalX" ).on( "click", function () {
+              // 關閉modal後清除rowData.id 避免修改一個以上data
+              rowData.id = ""
+            } )
+
+            $( "#saveButton" ).click( function ( e ) {
+              e.preventDefault();
+              // 驗證結果
+              let emailResult = emailRule.test( $( "#email" ).val() );
+              let phoneResult = phoneRule.test( $( "#phone" ).val() );
+              // 驗證
+              if ( $( "#name" ).val() == "" ) $( ".errorName" ).text( "必填" );
+              else $( ".errorName" ).text( "" );
+              if ( !emailResult ) $( ".errorEmail" ).text( "必填+電子信箱格式驗證" );
+              else $( ".errorEmail" ).text( "" );
+              if ( !phoneResult ) $( ".errorPhone" ).text( "必填+手機格式驗證" );
+              else $( ".errorPhone" ).text( "" );
+
+              const feedbackData = {
+                id: $( "#rowID" ).val().toString(),
+                name: $( "#name" ).val(),
+                email: $( "#email" ).val(),
+                phone: $( "#phone" ).val(),
+                date: rowData.date,
+              };
+              // 如果驗證通過，編輯資料
+              if ( $( "#name" ).val() !== "" && emailResult && phoneResult ) {
+                if ( rowData.id == "" ) return
+                axios.put( `${_url}/${rowData.id}`, {
+                  id: feedbackData.id,
+                  name: feedbackData.name,
+                  email: feedbackData.email,
+                  phone: feedbackData.phone,
+                } ).then( function ( res ) {
+                  if ( res.status && res.status === 200 ) {
+                    demo.updateData( feedbackData );
+                  }
+                } ).catch( function ( err ) {
+                  console.log( err );
+                } )
+
+                $( "#addModal" ).modal( "hide" );
+                // 關閉modal後清除rowData.id 避免修改一個以上data
+                rowData.id = ""
+              }
+            } );
+
+            $( "#addModalLabel" ).text( `個人資料編輯` );
+
+            if ( $( "#addSubmit" ) ) {
+              $( "#addSubmit" ).hide();
+              $( "#saveButton" ).show();
+            }
+          },
+          // 刪除按鈕的 Callback
+          onDelete: function ( id ) {
+            if ( $.isNumeric( id ) ) {
+              axios.delete( `${_url}/` + id ).then( function ( response ) {
+                if ( response.status && response.status === 200 ) {
+                  demo.removeDataByID( response.data.id );
+                }
+              } ).catch( function ( error ) {
+                console.log( error );
+              } );
+            }
+          },
+          // 新增單筆資料
+          onAdd: function ( data ) {
+            axios.post( `${_url}`, data ).then( function ( res ) {
+              if ( res.status && res.status === 200 ) {
+                demo.addData( data );
+              }
+            } ).catch( function ( err ) {
+              console.log( err );
+            } )
+          }
+        }
+        /**
+* 動態設置 UserInfo 選項參數
+* @param {Object} [options] - 更新預設參數
+*/
+        demo.setOptions( optionsContent );
+        /**
+         * 顯示搜尋結果
+         * @param {string} value
+         * @param {object[]} arr
+         */
+        const showSearchResult = ( value, arr = [] ) => {
+          $( "#jsonResult" )
+            .empty()
+            .html(
+              `<pre>${JSON.stringify(
+                demo.filterKeywords( value, arr ),
+                null,
+                1
+              )}</pre>`
+            );
+        };
+
+        // 搜尋
+        $( "#searchTxt" ).on( "keyup", function () {
+          const _value = $( this ).val();
+          // 事件延遲0.5秒執行, 減少reflow
+          setTimeout( () => {
+            showSearchResult( _value, demo.options.data );
+          }, 500 );
+        } );
+
+        $( "#showMore" ).on( "click", function () {
+          demo.showMore()
+        } );
+
+        // 新增
+        $( "#addSubmit" ).on( "click", function () {
+          const emailResult = emailRule.test( $( "#email" ).val() );
+          const phoneResult = phoneRule.test( $( "#phone" ).val() );
+          // 宣告day是當下時間再加一天
+          const currentDate = dayjs().add( 1, "day" ).format( "YYYY-MM-DD" );
+
+          // 驗證
+          if ( $( "#name" ).val() == "" ) $( ".errorName" ).text( "必填" );
+          else $( ".errorName" ).text( "" );
+          if ( !emailResult ) $( ".errorEmail" ).text( "必填+電子信箱格式驗證" );
+          else $( ".errorEmail" ).text( "" );
+          if ( !phoneResult ) $( ".errorPhone" ).text( "必填+手機格式驗證" );
+          else $( ".errorPhone" ).text( "" );
+
+          // 如果驗證都通過，提交表單
+          if ( $( "#name" ).val() !== "" && emailResult && phoneResult ) {
+            let count = demo.options.data.length + 1;
+            demo.options.onAdd( {
+              id: count,
+              name: $( "#name" ).val(),
+              email: $( "#email" ).val(),
+              phone: $( "#phone" ).val(),
+              date: currentDate,
+            } ) && $( "#addModal" ).modal( "toggle" );
+            count++;
+          }
+
+        } );
+        // 點擊新增時彈框input清空
+        $( "#addBtn" ).on( "click", function ( e ) {
+          $( "#addDate" ).text( currentDate );
+          $( "#name,#email,#phone" ).val( "" );
+
+          $( "#addModalLabel" ).text( `個人資料新增` );
+          $( "#addSubmit" ).show();
+          $( "#saveButton" ).hide();
+          $( ".errorName,.errorEmail,.errorPhone" ).text( "" );
+        } )
+      }
+    } ).catch( function ( error ) {
+      console.log( error );
+    } );
+  } )
+</script>
+
+<style>
+  #accountTable>tbody>tr:nth-child(odd) {
+    background-color: #efefef;
+  }
+
+  #accountTable>tbody>tr:hover {
+    background-color: #dedede;
+  }
+</style>

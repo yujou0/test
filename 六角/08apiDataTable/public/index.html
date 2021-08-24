@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Client Side jQuery DataTables</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="./dist/style.css" />
+    <!--引用css-->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" />
+</head>
+<body style="padding: 20px 0">
+    <div class="container">
+        <div class="form-group d-flex justify-content-between">
+            <button type="button" class="btn border-secondary btn-light" data-toggle="modal" data-target="#addModal"
+                id="addBtn">
+                新增
+            </button>
+            <div id="toolBar"></div>
+        </div>
+        <!-- 新增和編輯modal -->
+        <div class="modal fade" id="addModal" data-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addModalLabel">新增</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addForm" name="addForm" onsubmit="return validateForm()">
+                            <label for="addDate">Date</label>：<b id="addDate">2021-03-03</b>
+                        </form></br>
+                        <label for="name">English Name(*)</label>：<input type="text" id="name" class="inputform" />
+                        <div class="errorName text-danger"></div>
+                        <br />
+                        <label for="email">Email</label>：<br /><input type="text" id="email" class="inputform" />
+                        <div class="errorEmail text-danger"></div>
+                        <br />
+                        <label for="mobile">Phone</label>：<br /><input type="text" id="phone" class="inputform" />
+                        <div class="errorPhone text-danger"></div>
+                        <br />
+                        <input id="rowID" type="hidden" value="" />
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <!-- data-dimiss="modal" 關閉 modal -->
+                        <button type="button" class="btn border-secondary" data-dismiss="modal" id="closeModal">
+                            關閉
+                        </button>
+                        <button id="addSubmit" type="button" class="btn btn-light border-secondary">
+                            儲存
+                        </button>
+                        <button id="saveButton" type="button" class="btn btn-light border-secondary">
+                            更新
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <table id="DataTable" class="display" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>name</th>
+                <th>email</th>
+                <th>phone</th>
+                <th>date</th>
+                <th>action</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <!--引用jQuery-->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <!--引用dataTables.js-->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1.8.21/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <!-- <script src="./src/app.js"></script> -->
+    <script type="module">
+        import TableCRUD from "./src/crud.js";
+        const currentDate = dayjs().add( 1, "day" ).format( "YYYY-MM-DD" );
+        // 宣告驗證規則
+        let emailRule =
+            /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]+$/;
+        let phoneRule = /^09\d{2}-\d{6}$/;
+
+        $( function () {
+            $.ajax( {
+                url: '/data',
+                method: 'get',
+                dataType: 'json',
+                // dataSrc: "data",
+                success: function ( data ) {
+                    let optionsContent = {
+                        data: data,
+                        // 是否顯示自訂筆數
+                        showPerPage: true,
+                        // 是否顯示搜尋輸入框
+                        showSearch: true,
+                        // 是否顯示總筆數資訊
+                        showInfo: true,
+                        // 是否顯示分頁導航
+                        showPage: true,
+                        perPage: 5,
+                        // 更新單筆欄位資料
+                        onEdit: function ( $tr, rowData ) {
+                            // $tr是修改按鈕的所有父元素，rowData是那一行的資料
+                            const saveData = data.userData;
+
+                            $( "#rowID" ).val( rowData.id );
+                            $( "#name" ).val( rowData.name );
+                            $( "#email" ).val( rowData.email );
+                            $( "#phone" ).val( rowData.phone );
+                            $( "#addDate" ).text( rowData.addDate );
+
+                            $( "#addModal" ).modal( "show" );
+
+                            $( "#addBtn" ).on( "click", function ( e ) {
+                                e.preventDefault();
+                                $( "#addModal" ).modal( "show" );
+                            } );
+
+                            $( "#closeModal" ).click( function () {
+                                // 關閉modal後清除rowData.id 避免修改一個以上data
+                                rowData.id = ""
+                            } )
+
+                            $( "#saveButton" ).click( function ( e ) {
+                                e.preventDefault();
+
+                                const feedbackData = {
+                                    id: $( "#rowID" ).val().toString(),
+                                    name: $( "#name" ).val(),
+                                    email: $( "#email" ).val(),
+                                    phone: $( "#phone" ).val(),
+                                    date: rowData.date,
+                                };
+
+                                if ( rowData.id !== "" ) { editData( rowData.id ) }
+                                rowData.id = ""
+                                function editData( data ) {
+                                    axios.put( `${'/data'}/${rowData.id}`, {
+                                        id: feedbackData.id,
+                                        name: feedbackData.name,
+                                        email: feedbackData.email,
+                                        phone: feedbackData.phone,
+                                    } ).then( function ( res ) {
+                                        if ( res.status && res.status === 200 ) {
+                                            demo.updateData( feedbackData, res.data );
+                                            let table = $( '#DataTable' ).DataTable()
+                                            table.clear().draw();
+                                            table.destroy();
+                                            refetchTable()
+                                        }
+                                    } ).catch( function ( err ) {
+                                        console.log( err );
+                                    } )
+                                }
+
+                                $( "#addModal" ).modal( "hide" );
+                            } );
+
+                            $( "#addModalLabel" ).text( `編輯` );
+
+                            if ( $( "#addSubmit" ) ) {
+                                $( "#addSubmit" ).hide();
+                                $( "#saveButton" ).show();
+                            }
+                        },
+                        // 刪除單筆欄位資料
+                        onDelete: function (rowData ) {
+                            console.log(rowData.id)
+                            axios.delete( `data/${rowData.id}` ).then( function ( res ) {
+                                if ( res.status && res.status === 200 ) {
+                                    // console.log(res.data.id)
+                                    demo.removeData(res.data.id)
+                                    console.log(res)
+                                    let table = $( '#DataTable' ).DataTable()
+                                    table.clear().draw();
+                                    table.destroy();
+                                    refetchTable()
+                                }
+                            } ).catch( function ( err ) {
+                                console.log( err );
+                            } )
+                        },
+                        onAdd: function ( data ) {
+                            axios.post( `${'/data'}`, data ).then( function ( res ) {
+                                if ( res.status && res.status === 200 ) {
+                                    demo.addItem( data );
+                                    let table = $( '#DataTable' ).DataTable()
+                                    table.clear().draw();
+                                    table.destroy();
+                                    refetchTable()
+                                }
+                            } ).catch( function ( err ) {
+                                console.log( err );
+                            } )
+                        }
+                    }
+                    $( '#DataTable' ).dataTable( {
+                        data: data.userData,
+                        retrieve: true,
+                        columns: [
+                            { 'data': 'id' },
+                            { 'data': 'name' },
+                            { 'data': 'email' },
+                            { 'data': 'phone' },
+                            { 'data': 'date' },
+                            { 'data': "", "defaultContent": `<button class="btn btn-secondary edit-btn">Edit</button><button class="btn btn-danger delete-btn">Delete</button>` }
+                        ],
+                        lengthMenu: [5, 10, 15, 20, 25],
+                        deferRender: true,
+                        scrollY: 279,
+
+                        destroy: true,
+                        drawCallback: function ( settings ) {
+                            let demo = new TableCRUD( $( "#DataTable>tbody" ), {
+                                data: data,
+                                // 是否顯示自訂筆數
+                                showPerPage: true,
+                                // 是否顯示搜尋輸入框
+                                showSearch: true,
+                                // 是否顯示總筆數資訊
+                                showInfo: true,
+                                // 是否顯示分頁導航
+                                showPage: true,
+                                perPage: 5,
+                                // 更新單筆欄位資料
+                                onEdit: null,
+                                // 刪除單筆欄位資料
+                                onDelete: null,
+                            } );
+                            console.log( 'draw!' )
+                            demo.bind( optionsContent )
+                        },
+                        fnCreatedRow: function ( nRow, aData, iDisplayIndex ) {
+                            $( nRow ).attr( 'id', iDisplayIndex + 1 );
+                            $( nRow ).find( 'td' ).attr( 'data-id', iDisplayIndex + 1 );
+                        }
+                    } )
+
+                    let demo = new TableCRUD( $( "#DataTable>tbody" ), {
+                        data: data,
+                        // 是否顯示自訂筆數
+                        showPerPage: true,
+                        // 是否顯示搜尋輸入框
+                        showSearch: true,
+                        // 是否顯示總筆數資訊
+                        showInfo: true,
+                        // 是否顯示分頁導航
+                        showPage: true,
+                        perPage: 5,
+                        // 更新單筆欄位資料
+                        onEdit: null,
+                        // 刪除單筆欄位資料
+                        onDelete: null,
+                    } );
+                    demo.setOptions( optionsContent );
+
+                    //执行特定操作后，刷新表格
+                    function refetchTable() {
+                        $.ajax( {
+                            async: false,
+                            type: "GET",
+                            dataType: "json",
+                            url: '/data',
+                            timeout: 500,
+                            success: function ( data, status ) {
+                                $( '#DataTable' ).dataTable( {
+                                    data: data.userData,
+                                    retrieve: true,
+                                    columns: [
+                                        { 'data': 'id' },
+                                        { 'data': 'name' },
+                                        { 'data': 'email' },
+                                        { 'data': 'phone' },
+                                        { 'data': 'date' },
+                                        { 'data': "", "defaultContent": `<button class="btn btn-secondary edit-btn">Edit</button><button class="btn btn-danger delete-btn">Delete</button>` }
+                                    ],
+                                    lengthMenu: [5, 10, 15, 20, 25],
+                                    deferRender: true,
+                                    scrollY: 279,
+
+                                    destroy: true,
+                                    drawCallback: function ( settings ) {
+                                        demo.bind( optionsContent )
+                                    },
+                                    fnCreatedRow: function ( nRow, aData, iDisplayIndex ) {
+                                        $( nRow ).attr( 'id', iDisplayIndex + 1 );
+                                        $( nRow ).find( 'td' ).attr( 'data-id', iDisplayIndex + 1 );
+                                    },
+                                } )
+                            }
+                        } );
+                    }
+
+                    // 新增
+                    $( "#addSubmit" ).on( "click", function () {
+                        // const saveData = DATA;
+                        let emailResult = emailRule.test( $( "#email" ).val() );
+                        let phoneResult = phoneRule.test( $( "#phone" ).val() );
+                        // 宣告day是當下時間再加一天
+                        let currentDate = dayjs().add( 1, "day" ).format( "YYYY-MM-DD" );
+
+                        // 驗證
+                        if ( $( "#name" ).val() == "" ) $( ".errorName" ).text( "此欄位必填" );
+                        else $( ".errorName" ).text( "" );
+                        if ( !emailResult ) $( ".errorEmail" ).text( "email格式錯誤" );
+                        else $( ".errorEmail" ).text( "" );
+                        if ( !phoneResult ) $( ".errorPhone" ).text( "手機號碼格式錯誤" );
+                        else $( ".errorPhone" ).text( "" );
+
+                        // 如果驗證都通過，提交表單
+                        if ( $( "#name" ).val() !== "" && emailResult && phoneResult ) {
+                            let count = demo.options.data.userData.length + 1;
+                            demo.options.onAdd( {
+                                id: count,
+                                name: $( "#name" ).val(),
+                                email: $( "#email" ).val(),
+                                phone: $( "#phone" ).val(),
+                                date: currentDate,
+                            } ) && $( "#addModal" ).modal( "toggle" );
+                            count++;
+                        }
+
+                    } );
+                    // 點擊新增時彈框input清空
+                    $( "#addBtn" ).on( "click", function ( e ) {
+                        $( "#addDate" ).text( currentDate );
+                        $( "#name,#email,#phone" ).val( "" );
+
+                        $( "#addModalLabel" ).text( `新增` );
+                        $( "#addSubmit" ).show();
+                        $( "#saveButton" ).hide();
+                        $( ".errorName,.errorEmail,.errorPhone" ).text( "" );
+                    } );
+                }
+            } )
+
+        } );
+    </script>
+</body>
+
+</html>

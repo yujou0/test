@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>作業練習：元件變換</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="images/favicon.ico" rel="shortcut icon">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/stylesheets/all.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/solid.js" integrity="sha384-+Ga2s7YBbhOD6nie0DzrZpJes+b2K1xkpKxTFFcx59QmVPaSA8c7pycsNaFwUK6l" crossorigin="anonymous"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/regular.js" integrity="sha384-t7yHmUlwFrLxHXNLstawVRBMeSLcXTbQ5hsd0ifzwGtN7ZF7RZ8ppM7Ldinuoiif" crossorigin="anonymous"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/fontawesome.js" integrity="sha384-7ox8Q2yzO/uWircfojVuCQOZl+ZZBg2D2J5nkpLqzH1HY0C1dHlTKIbpRz/LG23c" crossorigin="anonymous"></script>    <script src="/javascripts/vendor.js"></script>
+
+  </head>
+  
+  <body class="bg-lighter">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <a class="navbar-brand" href="/">Vue.js 練習手冊</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarText">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="/basic/dev.html">基礎教學</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/template/basic.html">模板指令</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/components/basic.html">組件</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/api/vue_set.html">常用 API</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/es6/let_const.html">ES6</a>
+      </li>
+      
+    </ul>
+  </div>
+</nav>
+    <div class="container my-5">
+      <div class="row">
+        
+          <div class="col-md-3">
+            
+<div>
+  <h6 class="text-capitalize text-muted">components</h6>
+  
+    
+      <a href="/components/basic.html"  class="btn btn-block btn-link">
+        基礎元件
+      </a>
+    
+  
+    
+      <a href="/components/function_return.html"  class="btn btn-block btn-link">
+        元件必須使用 function return
+      </a>
+    
+  
+    
+      <a href="/components/prop_basic.html"  class="btn btn-block btn-link">
+        由外到內的資料傳遞
+      </a>
+    
+  
+    
+      <a href="/components/prop_adv.html"  class="btn btn-block btn-link">
+        Props 注意事項
+      </a>
+    
+  
+    
+      <a href="/components/prop_type.html"  class="btn btn-block btn-link">
+        Props 的型別
+      </a>
+    
+  
+    
+      <a href="/components/emit.html"  class="btn btn-block btn-link">
+        向外層傳送事件(Data)
+      </a>
+    
+  
+    
+      <a href="/components/slot.html"  class="btn btn-block btn-link">
+        Slot 插槽替換
+      </a>
+    
+  
+    
+      <a href="/components/is.html"  class="btn btn-block btn-link">
+        動態組建切換
+      </a>
+    
+  
+    
+      <a href="/components/eventbus.html"  class="btn btn-block btn-link">
+        Event Bus
+      </a>
+    
+  
+    
+      <a href="/components/homework_component.html"  class="btn btn-block btn-primary active">
+        作業練習：元件變換
+      </a>
+    
+  
+</div>
+          </div>
+        
+        <div class="col-md-9 post">      
+          <!-- 練習開始 -->
+          <h1 class="mt-0 text-muted">作業練習：元件變換</h1>
+          
+<h3>模板練習作業：Ajax 資料內容呈現</h3>
+<p>本作業一定要用到元件。</p>
+<div class="alert alert-secondary">
+  <p>提示：</p>
+  <ol class="mb-0">
+    <li>將資料內容透過 "元件" 呈現</li>
+    <li>製作城市過濾選項</li>
+    <li>將內層資料透過 emit 傳遞到外層 (作為另一個關注城市的呈現)</li>
+    <li>依據不同污染呈現不同色彩</li>
+    <li>加分題：透過 localStorage 儲存上次關注的城市</li>
+  </ol>
+</div>
+
+<div id="app" class='container'>
+  <!-- 使用v-model雙向綁訂去改變data內filter的值 -->
+  <select name="" id="" class="form-control mb-3" v-model="filter">
+    <option value="">--- 請選擇城市 ---</option>
+    <!-- key屬性可以用來提升v-for渲染DOM的效率。 key屬性必須是唯一不變的值（唯一標識），避免數據混亂的情況的出現。
+加了key之後，vue可以識別每組節點。如果節點之間內容一致，只是順序發生變化，那麼就沒有必要進行增加刪除操作了，而是直接進行順序的更改即可。大大提升效率。
+建議使用id，如果沒有id的情亂下使用index（下標），但是盡量不要用index，因為如果有元素被刪除，就會導致index變化，從而會導致數據的混亂。 -->
+    <option v-for="item in location" :value="item" :key="item.SiteId">{{item}}</option>
+  </select>
+  <div>
+    <h4>關注城市</h4>
+    <div class="card-columns">
+      <!--寫:is-follow是因為props: isFollow -->
+      <card-component v-for="item in getStaredData" :data='item' :is-follow='isFollow(item)' :key='item.siteId' v-on:follow-status='followHandler'>
+      </card-component>
+    </div>
+  </div>
+
+  <hr>
+  <div class="card-columns">
+    <card-component v-for="item in getCountyData" :data='item' :is-follow='isFollow(item)' :key='item.siteId' v-on:follow-status='followHandler'>
+    </card-component>
+  </div>
+</div>
+
+<script type="text/x-template" id="carComponentTemplate">
+    <div class="card" :class="getAQIStatusClass">
+      <div class="card-header">{{data.county}} - {{data.siteName}}
+        <a
+           href="#"
+           class="float-right"
+           @click.prevent="removeFlowHandler"
+           v-show='isFollow'
+           ><i class="fas fa-star"></i></a>
+        <a
+           href="#"
+           class="float-right"
+           @click.prevent="addFlowHandler"
+           v-show='!isFollow'
+           ><i class="far fa-star"></i></a>
+      </div>
+      <div class="card-body">
+        <ul class="list-unstyled">
+          <li>AQI 指數: {{data.AQI}}</li>
+          <li>PM2.5: {{data.pm25}}</li>
+          <li>說明: {{data.status}}</li>
+        </ul>
+          {{data.publishTime}}
+      </div>
+    </div>
+</script> 
+<script>
+// API 來源
+// https://opendata.epa.gov.tw/Data/Contents/AQI/
+
+Vue.component("cardComponent", {
+  template: "#carComponentTemplate",
+  props: {
+    data: {
+      type: Object,
+      default: {}
+    },
+    isFollow: {
+      type: Boolean
+    }
+  },
+  computed: {
+    getAQIStatusClass: function () {
+      const status = this.data.status ;
+      switch (status) {
+        default:
+          return;
+        case "普通":
+          return "status-aqi2";
+
+        case "對敏感族群不健康":
+          return "status-aqi3";
+
+        case "對所有族群不健康":
+          return "status-aqi4";
+
+        case "非常不健康":
+          return "status-aqi5";
+
+        case "危害":
+          return "status-aqi6";
+      }
+    }
+  },
+  methods: {
+    addFlowHandler: function () {
+      // $emit發出一個名為follow-status的事件，在HTML模板使用v-on:事件名稱去接收事件後，執行Vue實例內的followHandler function。
+      // 傳遞事件名稱之外還可以攜帶資料
+      this.$emit("follow-status", {
+        data: this.data,
+        mode: "add"
+      });
+    },
+    removeFlowHandler: function () {
+      this.$emit("follow-status", {
+        data: this.data,
+        mode: "remove"
+      });
+    }
+  }
+});
+
+var app = new Vue({
+  el: "#app",
+  data: {
+    data: [],
+    location: [
+      "臺北市",
+      "新北市",
+      "基隆市",
+      "桃園市",
+      "新竹市",
+      "新竹縣",
+      "苗栗縣",
+      "臺中市",
+      "彰化縣",
+      "南投縣",
+      "雲林縣",
+      "嘉義市",
+      "嘉義縣",
+      "臺南市",
+      "高雄市",
+      "屏東縣",
+      "宜蘭縣",
+      "花蓮縣",
+      "臺東縣",
+      "澎湖縣",
+      "金門縣",
+      "連江縣"
+    ],
+    stared: [],
+    filter: ""
+  },
+  // 請在此撰寫 JavaScript
+  created: function () {
+    this.getData();
+  },
+  methods: {
+    getData() {
+      const vm = this;
+      const api = 'http://opendata2.epa.gov.tw/AQI.json';
+      // 撈localStorage的DATA
+      const followDataFromLocalStorage = localStorage.getItem("follow");
+      // 如果localStorage的DATA有值就把JSON字串轉換成數值或是物件，沒有值的話就 = 空陣列
+      const followData = followDataFromLocalStorage ? JSON.parse(followDataFromLocalStorage) : [];
+
+      // 使用 jQuery ajax
+      $.get(api).then(function (response) {
+        vm.data = response.map((e) => {
+          // 讓e回傳以下值
+          return {
+            county: e.County,
+            siteName: e.SiteName,
+            AQI: e.AQI,
+            pm25: e["PM2.5"],
+            status: e.Status,
+            publishTime: e.PublishTime,
+            siteId: e.SiteId
+          };
+        });
+      });
+
+      vm.stared = followData;
+    },
+    isFollow: function (data) {
+      // some() 方法會透過給定函式、測試陣列中是否至少有一個元素，通過該函式所實作的測試。這方法回傳的是布林值。
+      // 判斷this.stared裡面的物件有沒有id符合data的siteId
+      return this.stared.some((ele) => {
+        return ele.siteId === data.siteId;
+      });
+    },
+    addFollow(data) {
+      const isDataExist = this.isFollow(data);
+      if (isDataExist) {
+        return;
+      }
+      this.stared.push(data);
+      localStorage.setItem("follow", JSON.stringify(this.stared));
+    },
+    removeFollow(data) {
+      const targetIndex = this.stared.findIndex((ele) => {
+        return ele.siteId === data.siteId;
+      });
+      if (targetIndex === -1) {
+        return;
+      }
+      this.stared.splice(targetIndex, 1);
+      localStorage.setItem("follow", JSON.stringify(this.stared));
+    },
+    // 依據傳入模式選擇新增或刪除
+    followHandler(d) {
+      const { data, mode } = d;
+      if (mode === "add") {
+        this.addFollow(data);
+      } else if (mode === "remove") {
+        this.removeFollow(data);
+      }
+    }
+  },
+  computed: {
+    getCountyData: function () {
+      const vm = this;
+      return vm.data.filter((ele) => {
+        // 如果縣市名稱和select結果一樣
+        return ele.county === vm.filter;
+      });
+    },
+    getStaredData: function () {
+      return this.stared;
+    }
+  }
+});
+
+</script>
+<!-- 
+狀態對應表
+'良好',
+'status-aqi2' '普通',
+'status-aqi3' '對敏感族群不健康',
+'status-aqi4' '對所有族群不健康',
+'status-aqi5' '非常不健康',
+'status-aqi6' '危害'
+--> 
+<style>
+.status-aqi2 {
+  background-color: #ffff00;
+}
+.status-aqi3 {
+  background-color: #ff7e00;
+}
+.status-aqi4 {
+  background-color: #ff0000;
+}
+.status-aqi5 {
+  background-color: #8f3f97;
+}
+.status-aqi6 {
+  background-color: #7e0023;
+}
+</style>
+
+ 
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

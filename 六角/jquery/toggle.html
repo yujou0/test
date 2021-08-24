@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <input type="button" class="button" value="隱藏標題"></input>
+    <h1 id="box" class="title">1234</h1>
+    <p style="display: none;">Lorem ipsum dolor sit amet consectetur adipisicing elit. Recusandae ratione obcaecati assumenda illo fugit soluta dolorem eos animi eum exercitationem.</p>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $( ".button" ).click( function () {
+                $( "h1,p" ).toggle()
+            } )
+        } )
+    </script>
+</body>
+
+</html>
